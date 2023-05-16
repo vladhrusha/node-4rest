@@ -1,0 +1,48 @@
+{
+  "name": "task-4-rest-api",
+  "version": "1.0.0",
+  "description": "npm install\r node {apiName}.js",
+  "main": "index.js",
+  "engines": {
+    "node": "18.13.0",
+    "npm": "8.19.3"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\"",
+    "prepare": "husky install",
+    "format": "prettier --write && eslint --fix",
+    "lint": "prettier --check && eslint --check",
+    "start": "node APIs/userManagement.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "http://git.foxminded.ua/foxstudent102410/task-4-rest-api.git"
+  },
+  "keywords": [],
+  "author": "vladhrusha",
+  "license": "ISC",
+  "devDependencies": {
+    "eslint": "^8.40.0",
+    "eslint-config-prettier": "^8.8.0",
+    "eslint-config-standard": "^17.0.0",
+    "eslint-plugin-import": "^2.27.5",
+    "eslint-plugin-n": "^16.0.0",
+    "eslint-plugin-prettier": "^4.2.1",
+    "eslint-plugin-promise": "^6.1.1",
+    "husky": "^8.0.3",
+    "lint-staged": "^13.2.2",
+    "prettier": "^2.8.8"
+  },
+  "dependencies": {
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2"
+  },
+  "lint-staged": {
+    "*.js": "eslint --cache --fix"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  }
+}
