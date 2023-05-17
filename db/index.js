@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+require("dotenv").config();
 
 const Db = process.env.ATLAS_URI;
 const logger = require("../utils/logger");
@@ -9,7 +10,6 @@ try {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   });
-  logger.info("connected");
 } catch (err) {
   logger.error(err);
 }

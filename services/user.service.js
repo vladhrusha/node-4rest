@@ -1,18 +1,27 @@
-const Subscription = require("../models/User");
+const User = require("../models/User");
 // eslint-disable-next-line
 const mongoose = require("../db/index");
 const logger = require("../utils/logger");
 
-const getAllUsers = async () => {
+const deleteAllUsers = async () => {
   try {
-    return await Subscription.find();
+    await User.deleteMany();
   } catch (err) {
     logger.error(err);
   }
 };
-const getByNickname = async (nickname) => {
+const getAllUsers = async (offset, limit) => {
   try {
-    return await Subscription.findOne({ nickname });
+    const users = await User.find().skip(offset).limit(limit);
+    const totalUsers = await User.countDocuments();
+    return { users, totalUsers };
+  } catch (err) {
+    logger.error(err);
+  }
+};
+const getByNickname = async ({ nickname }) => {
+  try {
+    return await User.findOne({ nickname });
   } catch (err) {
     logger.error(err);
   }
@@ -20,24 +29,29 @@ const getByNickname = async (nickname) => {
 
 const addUser = async ({ nickname, firstname, lastname, password }) => {
   try {
-    const newSubscription = new Subscription({
+    const newUser = new User({
       nickname,
       firstname,
       lastname,
       password,
     });
-    await newSubscription.save();
+    await newUser.save();
   } catch (err) {
     logger.error(err);
   }
 };
 
-const updateUser = async ({ nickname, lastname, firstname, password }) => {
+const updateUser = async ({
+  nickname,
+  lastname,
+  firstname,
+  encryptedPassword,
+}) => {
   try {
-    await Subscription.updateOne(
+    await User.updateOne(
       { nickname },
       {
-        $set: { lastname, firstname, password },
+        $set: { lastname, firstname, password: encryptedPassword },
       },
     );
   } catch (err) {
@@ -50,4 +64,5 @@ module.exports = {
   addUser,
   getByNickname,
   updateUser,
+  deleteAllUsers,
 };
