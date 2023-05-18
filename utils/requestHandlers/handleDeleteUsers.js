@@ -1,5 +1,5 @@
 const { deleteAllUsers } = require("../../services/user.service");
-const handleDeleteUsers = (reqBody) => {
+const handleDeleteUsers = () => {
   deleteAllUsers();
 };
 
