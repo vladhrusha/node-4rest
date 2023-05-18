@@ -8,8 +8,9 @@ const { getByNickname } = require("../services/user.service");
 const authenticate = async ({ nickname, password }) => {
   try {
     const user = await getByNickname({ nickname });
-    const derivedKey = await pbkdf2(password, "salt", 100000, 64, "sha512");
+    const derivedKey = await pbkdf2(password, user.salt, 100000, 64, "sha512");
     const encryptedPassword = derivedKey.toString("hex");
+
     if (user && user.password === encryptedPassword) {
       return true;
     }
@@ -20,4 +21,4 @@ const authenticate = async ({ nickname, password }) => {
   }
 };
 
-module.exports = authenticate;
+module.exports = { authenticate };

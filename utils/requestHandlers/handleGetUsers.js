@@ -1,13 +1,14 @@
 const { getAllUsers } = require("../../services/user.service");
-const logger = require("../logger");
 
 const handleGetUsers = async (reqBody) => {
-  try {
-    const page = reqBody.page || 1;
-    const limit = reqBody.limit || 5;
-    const offset = (page - 1) * limit;
+  const page = reqBody.page || 1;
+  let limit;
+  if (reqBody.limit > 100) limit = 100;
+  else limit = reqBody.limit || 5;
+  const offset = (page - 1) * limit;
 
-    const { users, totalUsers } = await getAllUsers(offset, limit);
+  const { users, totalUsers } = await getAllUsers(offset, limit);
+  if (users && totalUsers) {
     return {
       users: users.map((entity) => {
         return {
@@ -17,9 +18,11 @@ const handleGetUsers = async (reqBody) => {
         };
       }),
       totalUsers,
+      page,
+      limit,
     };
-  } catch (err) {
-    logger.err(err);
+  } else {
+    return "null or undefined";
   }
 };
 

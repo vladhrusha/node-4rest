@@ -27,13 +27,14 @@ const getByNickname = async ({ nickname }) => {
   }
 };
 
-const addUser = async ({ nickname, firstname, lastname, password }) => {
+const addUser = async ({ nickname, firstname, lastname, password, salt }) => {
   try {
     const newUser = new User({
       nickname,
       firstname,
       lastname,
       password,
+      salt,
     });
     await newUser.save();
   } catch (err) {
@@ -46,12 +47,13 @@ const updateUser = async ({
   lastname,
   firstname,
   encryptedPassword,
+  salt,
 }) => {
   try {
     await User.updateOne(
       { nickname },
       {
-        $set: { lastname, firstname, password: encryptedPassword },
+        $set: { lastname, firstname, password: encryptedPassword, salt },
       },
     );
   } catch (err) {

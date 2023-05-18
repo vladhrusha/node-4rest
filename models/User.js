@@ -5,6 +5,7 @@ const subscriptionSchema = new mongoose.Schema({
   firstname: { type: String, required: false },
   lastname: { type: String, required: false },
   password: { type: String, require: true },
+  salt: { type: String, required: true },
 });
 
 const User = mongoose.model("User", subscriptionSchema, "users");
