@@ -68,7 +68,7 @@ app.get(
   },
 );
 app.get(
-  `/${appName}/${appVersion}/user`,
+  `/${appName}/${appVersion}/user/:nickname`,
   getByNicknameValidation,
   async (req, res) => {
     const errors = validationResult(req);
@@ -76,7 +76,8 @@ app.get(
       return res.status(400).json({ errors: errors.array() });
     }
     try {
-      const user = await handleGetByNickname(req.body);
+      const nickname = req.params.nickname;
+      const user = await handleGetByNickname(nickname);
       res.status(200).json({ message: user });
     } catch (err) {
       res.status(500).json({ error: err });

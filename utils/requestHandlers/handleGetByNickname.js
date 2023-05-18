@@ -1,7 +1,6 @@
 const { getByNickname } = require("../../services/user.service");
 
-const handleGetByNickname = async (reqBody) => {
-  const { nickname } = reqBody;
+const handleGetByNickname = async (nickname) => {
   const dbResponse = await getByNickname({ nickname });
   return {
     nickname: dbResponse.nickname,

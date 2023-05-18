@@ -1,6 +1,6 @@
-const { body } = require("express-validator");
+const { param } = require("express-validator");
 
 const getByNicknameValidation = [
-  body("nickname").exists().withMessage("Nickname is required"),
+  param("nickname").exists().withMessage("nickname parameter is required"),
 ];
 module.exports = getByNicknameValidation;
