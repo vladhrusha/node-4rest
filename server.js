@@ -5,12 +5,14 @@ const {
   handleGetUsers,
   handleUpdateUser,
   handleDeleteUsers,
+  handleDeleteUser,
 } = require("./utils/requestHandlers");
 const {
   addUserValidation,
   getAllUsersValidation,
   getByNicknameValidation,
   updateUserValidation,
+  deleteByNicknameValidation,
 } = require("./utils/requestValidations");
 const app = express();
 require("dotenv").config();
@@ -46,8 +48,14 @@ app.put(
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
-    await handleUpdateUser(req.body);
-    res.status(200).json({ message: "user updated" });
+    try {
+      await handleUpdateUser(req, res);
+      res.status(200).json({ message: "user updated" });
+    } catch (err) {
+      if (err.message === "User has been modified since last retrieved") {
+        res.status(412).json({ message: err.message });
+      } else res.status(500).json({ message: err.message });
+    }
   },
 );
 // get all users
@@ -79,6 +87,7 @@ app.get(
     try {
       const nickname = req.params.nickname;
       const user = await handleGetByNickname(nickname);
+      res.set("Last-Modified", user.updated_at);
       res.status(200).json({ message: user });
     } catch (err) {
       res.status(500).json({ error: err });
@@ -92,6 +101,20 @@ app.delete(
   async (req, res) => {
     try {
       await handleDeleteUsers();
+      res.status(204).send();
+    } catch (err) {
+      res.status(500).json({ error: err });
+    }
+  },
+);
+// delete user by name
+app.delete(
+  `/${appName}/${appVersion}/user`,
+  authMiddleware,
+  deleteByNicknameValidation,
+  async (req, res) => {
+    try {
+      await handleDeleteUser(req);
       res.status(204).send();
     } catch (err) {
       res.status(500).json({ error: err });

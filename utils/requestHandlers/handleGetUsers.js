@@ -15,6 +15,7 @@ const handleGetUsers = async (reqBody) => {
           nickname: entity.nickname,
           firstname: entity.firstname,
           lastname: entity.lastname,
+          updated_at: entity.updated_at,
         };
       }),
       totalUsers,
