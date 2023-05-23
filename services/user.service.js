@@ -1,3 +1,4 @@
+/* eslint-disable camelcase */
 const User = require("../models/User");
 // eslint-disable-next-line
 const mongoose = require("../db/index");
@@ -5,6 +6,16 @@ const mongoose = require("../db/index");
 
 const deleteAllUsers = async () => {
   await User.deleteMany();
+};
+const deleteUserByName = async ({ nickname, deleted_at }) => {
+  await User.updateOne(
+    { nickname },
+    {
+      $set: {
+        deleted_at,
+      },
+    },
+  );
 };
 const getAllUsers = async (offset, limit) => {
   const users = await User.find().skip(offset).limit(limit);
@@ -32,11 +43,18 @@ const updateUser = async ({
   firstname,
   encryptedPassword,
   salt,
+  updated_at,
 }) => {
   await User.updateOne(
     { nickname },
     {
-      $set: { lastname, firstname, password: encryptedPassword, salt },
+      $set: {
+        lastname,
+        firstname,
+        password: encryptedPassword,
+        salt,
+        updated_at,
+      },
     },
   );
 };
@@ -47,4 +65,5 @@ module.exports = {
   getByNickname,
   updateUser,
   deleteAllUsers,
+  deleteUserByName,
 };

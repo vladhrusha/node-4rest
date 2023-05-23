@@ -1,4 +1,4 @@
-const { body } = require("express-validator");
+const { body, header } = require("express-validator");
 
 const updateUserValidation = [
   body("nickname").exists().withMessage("Nickname is required"),
@@ -15,5 +15,8 @@ const updateUserValidation = [
     .exists()
     .isString()
     .withMessage("new password is required"),
+  header("if-unmodified-since")
+    .exists()
+    .withMessage("If-Unmodified-Since header is missing"),
 ];
 module.exports = updateUserValidation;

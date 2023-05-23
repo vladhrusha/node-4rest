@@ -7,6 +7,7 @@ const handleGetByNickname = async (nickname) => {
     password: dbResponse.password,
     firstname: dbResponse.firstname,
     lastname: dbResponse.lastname,
+    updated_at: dbResponse.updated_at,
   };
 };
 
