@@ -9,6 +9,7 @@ const subscriptionSchema = new mongoose.Schema({
   created_at: { type: Date, default: Date.now },
   updated_at: { type: Date, default: null },
   deleted_at: { type: Date, default: null },
+  role: { type: String, enum: ["user", "moderator", "admin"], default: "user" },
 });
 
 const User = mongoose.model("User", subscriptionSchema, "users");
