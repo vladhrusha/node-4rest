@@ -4,6 +4,7 @@ const handleGetUsers = require("./handleGetUsers");
 const handleUpdateUser = require("./handleUpdateUser");
 const handleDeleteUsers = require("./handleDeleteUsers");
 const handleDeleteUser = require("./handleDeleteUser");
+const handleLogin = require("./handleLogin");
 
 module.exports = {
   handleAddUser,
@@ -12,4 +13,5 @@ module.exports = {
   handleUpdateUser,
   handleDeleteUsers,
   handleDeleteUser,
+  handleLogin,
 };

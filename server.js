@@ -1,4 +1,6 @@
 const express = require("express");
+const logger = require("./utils/logger");
+
 const {
   handleAddUser,
   handleGetByNickname,
@@ -6,7 +8,16 @@ const {
   handleUpdateUser,
   handleDeleteUsers,
   handleDeleteUser,
+  handleLogin,
 } = require("./utils/requestHandlers");
+
+// jwt
+const {
+  generateAccessToken,
+  authenticateToken,
+} = require("./utils/jwt/index.js");
+
+// validations
 const {
   addUserValidation,
   getAllUsersValidation,
@@ -16,7 +27,6 @@ const {
 } = require("./utils/requestValidations");
 const app = express();
 require("dotenv").config();
-const logger = require("./utils/logger");
 const { validationResult } = require("express-validator");
 
 const port = process.env.PORT || 1337;
@@ -41,7 +51,7 @@ app.post(`/${appName}/${appVersion}/user`, addUserValidation, (req, res) => {
 // update user
 app.put(
   `/${appName}/${appVersion}/user`,
-  authMiddleware,
+  authenticateToken,
   updateUserValidation,
   async (req, res) => {
     const errors = validationResult(req);
@@ -97,7 +107,7 @@ app.get(
 // delete users
 app.delete(
   `/${appName}/${appVersion}/users`,
-  authMiddleware,
+  authenticateToken,
   async (req, res) => {
     try {
       await handleDeleteUsers();
@@ -110,7 +120,7 @@ app.delete(
 // delete user by name
 app.delete(
   `/${appName}/${appVersion}/user`,
-  authMiddleware,
+  authenticateToken,
   deleteByNicknameValidation,
   async (req, res) => {
     try {
@@ -121,6 +131,37 @@ app.delete(
     }
   },
 );
+
+// login
+app.post(
+  `/${appName}/${appVersion}/login`,
+  authMiddleware,
+  async (req, res) => {
+    try {
+      const user = await handleLogin(req);
+      const token = generateAccessToken(user);
+      res.status(200).json({ token });
+    } catch (err) {
+      logger.error(err);
+      res.status(500).json({ error: err });
+    }
+  },
+);
+
+app.post(
+  `/${appName}/${appVersion}/protected`,
+  authenticateToken,
+  async (req, res) => {
+    try {
+      const user = req.user;
+      res.status(200).json({ user });
+    } catch (err) {
+      logger.error(err);
+      res.status(500).json({ error: err });
+    }
+  },
+);
+
 app.listen(port, () => {
   logger.info(`\n\nServer running on port ${port}.\n\n`);
 });
