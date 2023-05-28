@@ -2,8 +2,7 @@
 const User = require("../models/User");
 // eslint-disable-next-line
 const mongoose = require("../db/index");
-// const logger = require("../utils/logger");
-
+const logger = require("../utils/logger");
 const deleteAllUsers = async () => {
   await User.deleteMany();
 };
@@ -59,6 +58,47 @@ const updateUser = async ({
   );
 };
 
+const addVote = async ({ vote, sourceNickname, destNickname }) => {
+  const destinationUser = await User.findOne({
+    nickname: destNickname,
+  });
+  if (!destinationUser) {
+    return "Destination user not found.";
+  }
+  let indexOfNickname;
+  for (let i = 0; i < destinationUser.votes.length; i++) {
+    logger.info(destinationUser.votes[i].nickname);
+    if (destinationUser.votes[i].nickname === sourceNickname) {
+      indexOfNickname = i;
+      break;
+    }
+  }
+  const now = new Date();
+  const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
+  const hasVotedRecently =
+    destinationUser.votes[indexOfNickname].timestamp < oneHourAgo;
+  if (hasVotedRecently) {
+    return "You can only vote once per hour.";
+  }
+  if (indexOfNickname !== -1) {
+    const previousVote = destinationUser.votes[indexOfNickname].value;
+    if (previousVote !== vote) {
+      destinationUser.votes[indexOfNickname].value = vote;
+      destinationUser.rating = destinationUser.rating - parseInt(previousVote);
+    }
+  } else {
+    const newVote = {
+      nickname: sourceNickname,
+      value: vote,
+      timestamp: new Date(),
+    };
+    await destinationUser.votes.push(newVote);
+  }
+
+  destinationUser.rating = destinationUser.rating + parseInt(vote);
+  await destinationUser.save();
+};
+
 module.exports = {
   getAllUsers,
   addUser,
@@ -66,4 +106,5 @@ module.exports = {
   updateUser,
   deleteAllUsers,
   deleteUserByName,
+  addVote,
 };

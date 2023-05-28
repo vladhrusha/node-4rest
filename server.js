@@ -9,8 +9,9 @@ const {
   handleDeleteUsers,
   handleDeleteUser,
   handleLogin,
+  handleVote,
 } = require("./utils/requestHandlers");
-
+const { postVoteErrorResponse } = require("./utils/responses");
 // jwt
 const {
   generateAccessToken,
@@ -24,6 +25,7 @@ const {
   getByNicknameValidation,
   updateUserValidation,
   deleteByNicknameValidation,
+  voteValidation,
 } = require("./utils/requestValidations");
 const app = express();
 require("dotenv").config();
@@ -155,6 +157,20 @@ app.post(
     try {
       const user = req.user;
       res.status(200).json({ user });
+    } catch (err) {
+      logger.error(err);
+      res.status(500).json({ error: err });
+    }
+  },
+);
+app.post(
+  `/${appName}/${appVersion}/vote`,
+  voteValidation,
+  authenticateToken,
+  async (req, res) => {
+    try {
+      const result = await handleVote(req, res);
+      postVoteErrorResponse({ result, res });
     } catch (err) {
       logger.error(err);
       res.status(500).json({ error: err });

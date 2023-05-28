@@ -1,5 +1,5 @@
 const jwt = require("jsonwebtoken");
-const logger = require("../logger");
+// const logger = require("../logger");
 require("dotenv").config();
 const secret = process.env.TOKEN_SECRET;
 
@@ -12,7 +12,7 @@ const authenticateToken = async (req, res, next) => {
     if (err) {
       return res.status(403).json({ error: "Invalid token" });
     } else {
-      logger.info("1" + " " + decoded.role);
+      // logger.info("1" + " " + decoded.role);
       req.user = decoded;
 
       next();
