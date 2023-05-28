@@ -4,8 +4,6 @@ const logger = require("../logger");
 const voteValidation = [
   body("sourceNickname").exists().withMessage("source nickname is required"),
   body("vote")
-    .exists()
-    .withMessage("Vote change is required")
     .custom((val) => {
       // if (!/^-?1$|^0$/.test(val)) {
       //   logger.info("fired");
