@@ -165,8 +165,8 @@ app.post(
 );
 app.post(
   `/${appName}/${appVersion}/vote`,
-  voteValidation,
   authenticateToken,
+  voteValidation,
   async (req, res) => {
     try {
       const result = await handleVote(req, res);
