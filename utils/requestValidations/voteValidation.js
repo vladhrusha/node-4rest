@@ -6,8 +6,11 @@ const voteValidation = [
   body("vote")
     .exists()
     .withMessage("Vote change is required")
-    .matches(/^-?1$/, "g")
-    .withMessage("Vote value should be -1, 0, or 1"),
+    .custom((val) => {
+      if (val.matches(/^-?[01]$/)) return true;
+      return false;
+    })
+    .withMessage("Vote value should be either -1, 0, or 1"),
   body("destNickname").exists().withMessage("destination nickname is required"),
 ];
 module.exports = voteValidation;
