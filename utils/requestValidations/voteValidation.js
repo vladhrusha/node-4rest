@@ -2,7 +2,7 @@ const { body } = require("express-validator");
 // const logger = require("../logger");
 
 const voteValidation = [
-  body("vote")
+  body("value")
     .not()
     .isString()
     .withMessage("Vote value must be integer")

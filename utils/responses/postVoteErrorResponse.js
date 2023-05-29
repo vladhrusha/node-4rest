@@ -11,7 +11,7 @@ const postVoteErrorResponse = async ({ result, res }) => {
       res.status(429).json({ err: result });
       break;
     default:
-      res.status(200).json({ placeholder: "placeholder" });
+      res.status(200).json({ placeholder: "success" });
       break;
   }
 };

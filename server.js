@@ -10,6 +10,7 @@ const {
   handleDeleteUser,
   handleLogin,
   handleVote,
+  handleDeleteVotes,
 } = require("./utils/requestHandlers");
 const { postVoteErrorResponse } = require("./utils/responses");
 // jwt
@@ -163,6 +164,20 @@ app.post(
     }
   },
 );
+// delete votes
+app.delete(
+  `/${appName}/${appVersion}/votes`,
+  authenticateToken,
+  async (req, res) => {
+    try {
+      await handleDeleteVotes();
+      res.status(204).send();
+    } catch (err) {
+      res.status(500).json({ error: err });
+    }
+  },
+);
+
 app.post(
   `/${appName}/${appVersion}/vote`,
   authenticateToken,

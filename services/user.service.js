@@ -61,48 +61,56 @@ const updateUser = async ({
   );
 };
 
-const addVote = async ({ vote, sourceNickname, destNickname }) => {
+const addVote = async ({ value, sourceUserId, destNickname }) => {
   const destinationUser = await User.findOne({
     nickname: destNickname,
   });
+  logger.info(`${destNickname}`);
   if (!destinationUser) {
     return "Destination user not found.";
   }
-  const votes = await Vote.find({
-    user: destinationUser._id,
-    sourceNickname,
+  const vote = await Vote.findOne({
+    userTo: destinationUser._id,
+    userFrom: sourceUserId,
   });
 
-  const voteIndex = votes.findIndex(
-    (vote) => vote.sourceNickname === sourceNickname,
-  );
+  logger.info(sourceUserId);
 
   const now = new Date();
   const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
-
   const hasVotedRecently =
-    voteIndex !== -1 && votes[voteIndex].timestamp > oneHourAgo;
+    vote && vote.timestamp && vote.timestamp > oneHourAgo;
   if (hasVotedRecently) {
     return "You can only vote once per hour.";
   }
-  if (voteIndex !== -1) {
-    const previousVote = votes[voteIndex].value;
+  if (vote && vote.timestamp) {
+    const previousVote = vote.value;
     if (previousVote !== vote) {
-      votes[voteIndex].value = vote;
+      vote.value = value;
+      vote.timestamp = now.getTime();
       destinationUser.rating = destinationUser.rating - parseInt(previousVote);
-      await votes[voteIndex].save();
+      await vote.save();
     }
   } else {
     const newVote = new Vote({
-      user: destinationUser._id,
-      sourceNickname,
-      value: vote,
+      userTo: destinationUser._id,
+      userFrom: sourceUserId,
+      value,
     });
     await newVote.save();
-    destinationUser.votes.push(newVote._id);
   }
-  destinationUser.rating = destinationUser.rating + parseInt(vote);
+  const updatedVotes = await Vote.find({ userTo: destinationUser._id });
+  const newRating = updatedVotes.reduce(
+    (total, vote) => total + parseInt(vote.value),
+    0,
+  );
+
+  destinationUser.rating = newRating;
   await destinationUser.save();
+};
+
+const deleteAllVotes = async () => {
+  await Vote.deleteMany();
 };
 
 module.exports = {
@@ -113,4 +121,5 @@ module.exports = {
   deleteAllUsers,
   deleteUserByName,
   addVote,
+  deleteAllVotes,
 };

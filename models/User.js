@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const subscriptionSchema = new mongoose.Schema({
+const userSchema = new mongoose.Schema({
   nickname: { type: String, required: true, unique: true },
   firstname: { type: String, required: false },
   lastname: { type: String, required: false },
@@ -10,10 +10,9 @@ const subscriptionSchema = new mongoose.Schema({
   updated_at: { type: Date, default: null },
   deleted_at: { type: Date, default: null },
   role: { type: String, enum: ["user", "moderator", "admin"], default: "user" },
-  votes: [{ type: mongoose.Schema.Types.ObjectId, ref: "Vote" }],
   rating: { type: Number, default: 0 },
 });
 
-const User = mongoose.model("User", subscriptionSchema, "users");
+const User = mongoose.model("User", userSchema, "users");
 
 module.exports = User;
