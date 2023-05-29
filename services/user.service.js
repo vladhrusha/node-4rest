@@ -4,6 +4,7 @@ const Vote = require("../models/Vote");
 
 // eslint-disable-next-line
 const mongoose = require("../db/index");
+// eslint-disable-next-line
 const logger = require("../utils/logger");
 const deleteAllUsers = async () => {
   await User.deleteMany();
@@ -72,27 +73,24 @@ const addVote = async ({ vote, sourceNickname, destNickname }) => {
     sourceNickname,
   });
 
-  let indexOfNickname;
-  for (const [index, vote] of votes.entries()) {
-    if (vote.sourceNickname === sourceNickname) {
-      indexOfNickname = index;
-      break;
-    }
-  }
+  const voteIndex = votes.findIndex(
+    (vote) => vote.sourceNickname === sourceNickname,
+  );
+
   const now = new Date();
   const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
 
-  const hasVotedRecently = votes[indexOfNickname].timestamp > oneHourAgo;
+  const hasVotedRecently =
+    voteIndex !== -1 && votes[voteIndex].timestamp > oneHourAgo;
   if (hasVotedRecently) {
     return "You can only vote once per hour.";
   }
-  logger.info(`${indexOfNickname}`);
-  if (indexOfNickname !== undefined) {
-    const previousVote = votes[indexOfNickname].value;
+  if (voteIndex !== -1) {
+    const previousVote = votes[voteIndex].value;
     if (previousVote !== vote) {
-      votes[indexOfNickname].value = vote;
+      votes[voteIndex].value = vote;
       destinationUser.rating = destinationUser.rating - parseInt(previousVote);
-      votes[indexOfNickname].save();
+      await votes[voteIndex].save();
     }
   } else {
     const newVote = new Vote({
@@ -101,11 +99,7 @@ const addVote = async ({ vote, sourceNickname, destNickname }) => {
       value: vote,
     });
     await newVote.save();
-    await User.findByIdAndUpdate(
-      destinationUser._id,
-      { $push: { votes: newVote._id } },
-      { new: true },
-    );
+    destinationUser.votes.push(newVote._id);
   }
   destinationUser.rating = destinationUser.rating + parseInt(vote);
   await destinationUser.save();
