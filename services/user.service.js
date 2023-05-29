@@ -1,5 +1,7 @@
 /* eslint-disable camelcase */
 const User = require("../models/User");
+const Vote = require("../models/Vote");
+
 // eslint-disable-next-line
 const mongoose = require("../db/index");
 const logger = require("../utils/logger");
@@ -65,36 +67,46 @@ const addVote = async ({ vote, sourceNickname, destNickname }) => {
   if (!destinationUser) {
     return "Destination user not found.";
   }
+  const votes = await Vote.find({
+    user: destinationUser._id,
+    sourceNickname,
+  });
+
   let indexOfNickname;
-  for (let i = 0; i < destinationUser.votes.length; i++) {
-    logger.info(destinationUser.votes[i].nickname);
-    if (destinationUser.votes[i].nickname === sourceNickname) {
-      indexOfNickname = i;
+  for (const [index, vote] of votes.entries()) {
+    if (vote.sourceNickname === sourceNickname) {
+      indexOfNickname = index;
       break;
     }
   }
   const now = new Date();
   const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
-  const hasVotedRecently =
-    destinationUser.votes[indexOfNickname].timestamp < oneHourAgo;
+
+  const hasVotedRecently = votes[indexOfNickname].timestamp > oneHourAgo;
   if (hasVotedRecently) {
     return "You can only vote once per hour.";
   }
-  if (indexOfNickname !== -1) {
-    const previousVote = destinationUser.votes[indexOfNickname].value;
+  logger.info(`${indexOfNickname}`);
+  if (indexOfNickname !== undefined) {
+    const previousVote = votes[indexOfNickname].value;
     if (previousVote !== vote) {
-      destinationUser.votes[indexOfNickname].value = vote;
+      votes[indexOfNickname].value = vote;
       destinationUser.rating = destinationUser.rating - parseInt(previousVote);
+      votes[indexOfNickname].save();
     }
   } else {
-    const newVote = {
-      nickname: sourceNickname,
+    const newVote = new Vote({
+      user: destinationUser._id,
+      sourceNickname,
       value: vote,
-      timestamp: new Date(),
-    };
-    await destinationUser.votes.push(newVote);
+    });
+    await newVote.save();
+    await User.findByIdAndUpdate(
+      destinationUser._id,
+      { $push: { votes: newVote._id } },
+      { new: true },
+    );
   }
-
   destinationUser.rating = destinationUser.rating + parseInt(vote);
   await destinationUser.save();
 };

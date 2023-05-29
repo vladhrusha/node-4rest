@@ -1,16 +1,13 @@
 const { body } = require("express-validator");
-const logger = require("../logger");
+// const logger = require("../logger");
 
 const voteValidation = [
-  body("sourceNickname").exists().withMessage("source nickname is required"),
   body("vote")
+    .not()
+    .isString()
+    .withMessage("Vote value must be integer")
     .custom((val) => {
-      // if (!/^-?1$|^0$/.test(val)) {
-      //   logger.info("fired");
-      //   throw new Error("Vote value should be either -1, 0, or 1");
-      // }
-      if (!/^-?1$|^0$/.test(val)) {
-        logger.info("fired");
+      if (![-1, 0, 1].includes(val)) {
         return false;
       }
       return true;

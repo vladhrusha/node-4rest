@@ -10,14 +10,7 @@ const subscriptionSchema = new mongoose.Schema({
   updated_at: { type: Date, default: null },
   deleted_at: { type: Date, default: null },
   role: { type: String, enum: ["user", "moderator", "admin"], default: "user" },
-  votes: [
-    {
-      nickname: { type: String, required: true },
-      // value: { type: Number, enum: [-1, 1, 0] },
-      value: { type: Number },
-      timestamp: { type: Date, default: Date.now },
-    },
-  ],
+  votes: [{ type: mongoose.Schema.Types.ObjectId, ref: "Vote" }],
   rating: { type: Number, default: 0 },
 });
 

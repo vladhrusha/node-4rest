@@ -169,6 +169,10 @@ app.post(
   voteValidation,
   async (req, res) => {
     try {
+      const valResult = await validationResult(req);
+      if (valResult && valResult.errors.length > 0) {
+        return res.status(400).json({ errors: valResult.errors });
+      }
       const result = await handleVote(req, res);
       postVoteErrorResponse({ result, res });
     } catch (err) {
