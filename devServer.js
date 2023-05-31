@@ -10,17 +10,9 @@ const {
   handleDeleteUser,
   handleLogin,
   handleVote,
+  handleDeleteVotes,
 } = require("./utils/requestHandlers");
-const {
-  postVoteErrorResponse,
-  updateUserErrorResponse,
-  addUserErrorResponse,
-  deleteUserByNameErrorResponse,
-  deleteUsersErrorResponse,
-  getUserByNicknameErrorResponse,
-  getAllUsersErrorResponse,
-  postLoginErrorResponse,
-} = require("./utils/responses");
+const { postVoteErrorResponse } = require("./utils/responses");
 // jwt
 const {
   generateAccessToken,
@@ -56,13 +48,13 @@ app.post(`/${appName}/${appVersion}/user`, addUserValidation, (req, res) => {
     handleAddUser(req.body);
     res.status(201).json({ message: "user added" });
   } catch (err) {
-    addUserErrorResponse({ err, res });
+    res.status(500).json({ error: err });
   }
 });
 // update user
 app.put(
   `/${appName}/${appVersion}/user`,
-  authMiddleware,
+  authenticateToken,
   updateUserValidation,
   async (req, res) => {
     const errors = validationResult(req);
@@ -73,7 +65,9 @@ app.put(
       await handleUpdateUser(req, res);
       res.status(200).json({ message: "user updated" });
     } catch (err) {
-      updateUserErrorResponse({ err, res });
+      if (err.message === "User has been modified since last retrieved") {
+        res.status(412).json({ message: err.message });
+      } else res.status(500).json({ message: err.message });
     }
   },
 );
@@ -90,7 +84,7 @@ app.get(
       const users = await handleGetUsers(req.body);
       res.status(200).json({ message: users });
     } catch (err) {
-      getAllUsersErrorResponse({ err, res });
+      res.status(500).json({ error: err });
     }
   },
 );
@@ -109,7 +103,7 @@ app.get(
       res.set("Last-Modified", user.updated_at);
       res.status(200).json({ message: user });
     } catch (err) {
-      getUserByNicknameErrorResponse({ err, res });
+      res.status(500).json({ error: err });
     }
   },
 );
@@ -122,7 +116,7 @@ app.delete(
       await handleDeleteUsers();
       res.status(204).send();
     } catch (err) {
-      deleteUsersErrorResponse({ err, res });
+      res.status(500).json({ error: err });
     }
   },
 );
@@ -136,7 +130,7 @@ app.delete(
       await handleDeleteUser(req);
       res.status(204).send();
     } catch (err) {
-      deleteUserByNameErrorResponse({ err, res });
+      res.status(500).json({ error: err });
     }
   },
 );
@@ -148,12 +142,38 @@ app.post(
   async (req, res) => {
     try {
       const user = await handleLogin(req);
-      const userId = req.body.userId;
-      logger.info(userId);
-      const token = generateAccessToken({ user, userId });
+      const token = generateAccessToken(user);
       res.status(200).json({ token });
     } catch (err) {
-      postLoginErrorResponse({ err, res });
+      logger.error(err);
+      res.status(500).json({ error: err });
+    }
+  },
+);
+
+app.post(
+  `/${appName}/${appVersion}/protected`,
+  authenticateToken,
+  async (req, res) => {
+    try {
+      const user = req.user;
+      res.status(200).json({ user });
+    } catch (err) {
+      logger.error(err);
+      res.status(500).json({ error: err });
+    }
+  },
+);
+// delete votes
+app.delete(
+  `/${appName}/${appVersion}/votes`,
+  authenticateToken,
+  async (req, res) => {
+    try {
+      await handleDeleteVotes();
+      res.status(204).send();
+    } catch (err) {
+      res.status(500).json({ error: err });
     }
   },
 );

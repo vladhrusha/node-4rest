@@ -4,12 +4,14 @@ const { addVote } = require("../../services/user.service");
 const handleVote = async (req, res) => {
   const { destNickname, value } = req.body;
   const sourceNickname = req.user.nickname;
-  const sourceUserId = req.body.userId;
-  if (sourceNickname === destNickname) {
-    return "You cannot vote for yourself.";
-  }
+  const sourceUserId = req.user.userId;
 
-  const addVoteResult = await addVote({ value, sourceUserId, destNickname });
+  const addVoteResult = await addVote({
+    value,
+    sourceUserId,
+    destNickname,
+    sourceNickname,
+  });
   return addVoteResult;
 };
 

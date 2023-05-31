@@ -61,25 +61,33 @@ const updateUser = async ({
   );
 };
 
-const addVote = async ({ value, sourceUserId, destNickname }) => {
+const addVote = async ({
+  value,
+  sourceUserId,
+  destNickname,
+  sourceNickname,
+}) => {
   const destinationUser = await User.findOne({
     nickname: destNickname,
   });
-  logger.info(`${destNickname}`);
+  const sourceUser = await User.findOne({
+    _id: sourceUserId,
+  });
   if (!destinationUser) {
     return "Destination user not found.";
   }
   const vote = await Vote.findOne({
     userTo: destinationUser._id,
-    userFrom: sourceUserId,
+    userFrom: sourceUser._id,
   });
-
-  logger.info(sourceUserId);
 
   const now = new Date();
   const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
   const hasVotedRecently =
     vote && vote.timestamp && vote.timestamp > oneHourAgo;
+  if (sourceNickname === destNickname) {
+    return "You cannot vote for yourself.";
+  }
   if (hasVotedRecently) {
     return "You can only vote once per hour.";
   }
@@ -94,7 +102,7 @@ const addVote = async ({ value, sourceUserId, destNickname }) => {
   } else {
     const newVote = new Vote({
       userTo: destinationUser._id,
-      userFrom: sourceUserId,
+      userFrom: sourceUser._id,
       value,
     });
     await newVote.save();
