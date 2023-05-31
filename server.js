@@ -1,6 +1,7 @@
 const express = require("express");
 const logger = require("./utils/logger");
 
+// request handlers
 const {
   handleAddUser,
   handleGetByNickname,
@@ -11,6 +12,8 @@ const {
   handleLogin,
   handleVote,
 } = require("./utils/requestHandlers");
+
+// error responses
 const {
   postVoteErrorResponse,
   updateUserErrorResponse,
@@ -36,6 +39,10 @@ const {
   deleteByNicknameValidation,
   voteValidation,
 } = require("./utils/requestValidations");
+
+const addCalculateRatingsCronJob = require("./utils/addCalculateRatingsCronJob");
+
+// app
 const app = express();
 require("dotenv").config();
 const { validationResult } = require("express-validator");
@@ -149,7 +156,6 @@ app.post(
     try {
       const user = await handleLogin(req);
       const userId = req.body.userId;
-      logger.info(userId);
       const token = generateAccessToken({ user, userId });
       res.status(200).json({ token });
     } catch (err) {
@@ -178,5 +184,6 @@ app.post(
 );
 
 app.listen(port, () => {
+  addCalculateRatingsCronJob();
   logger.info(`\n\nServer running on port ${port}.\n\n`);
 });

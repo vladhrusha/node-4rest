@@ -96,7 +96,6 @@ const addVote = async ({
     if (previousVote !== vote) {
       vote.value = value;
       vote.timestamp = now.getTime();
-      destinationUser.rating = destinationUser.rating - parseInt(previousVote);
       await vote.save();
     }
   } else {
@@ -107,18 +106,25 @@ const addVote = async ({
     });
     await newVote.save();
   }
-  const updatedVotes = await Vote.find({ userTo: destinationUser._id });
-  const newRating = updatedVotes.reduce(
-    (total, vote) => total + parseInt(vote.value),
-    0,
-  );
-
-  destinationUser.rating = newRating;
-  await destinationUser.save();
 };
 
 const deleteAllVotes = async () => {
   await Vote.deleteMany();
+};
+
+const calculateRatings = async (users) => {
+  if (users) {
+    for (const user of users) {
+      const updatedVotes = await Vote.find({ userTo: user._id });
+      const newRating = updatedVotes.reduce(
+        (total, vote) => total + parseInt(vote.value),
+        0,
+      );
+
+      user.rating = newRating;
+      await user.save();
+    }
+  } else logger.error("unable to get users");
 };
 
 module.exports = {
@@ -130,4 +136,5 @@ module.exports = {
   deleteUserByName,
   addVote,
   deleteAllVotes,
+  calculateRatings,
 };
