@@ -1,9 +1,11 @@
 /* eslint-disable camelcase */
 const User = require("../models/User");
+const Vote = require("../models/Vote");
+
 // eslint-disable-next-line
 const mongoose = require("../db/index");
-// const logger = require("../utils/logger");
-
+// eslint-disable-next-line
+const logger = require("../utils/logger");
 const deleteAllUsers = async () => {
   await User.deleteMany();
 };
@@ -59,6 +61,79 @@ const updateUser = async ({
   );
 };
 
+const addVote = async ({
+  value,
+  sourceUserId,
+  destNickname,
+  sourceNickname,
+}) => {
+  const destinationUser = await User.findOne({
+    nickname: destNickname,
+  });
+  const sourceUser = await User.findOne({
+    _id: sourceUserId,
+  });
+  if (!destinationUser) {
+    return "Destination user not found.";
+  }
+  const vote = await Vote.findOne({
+    userTo: destinationUser._id,
+    userFrom: sourceUser._id,
+  });
+
+  const now = new Date();
+  const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+
+  const recentVoteByUserFrom = await Vote.findOne({
+    userFrom: sourceUser._id,
+    timestamp: { $lt: oneHourAgo },
+  });
+  const voteByUserFrom = await Vote.findOne({
+    userFrom: sourceUser._id,
+  });
+
+  if (sourceNickname === destNickname) {
+    return "You cannot vote for yourself.";
+  }
+  if (!recentVoteByUserFrom && voteByUserFrom) {
+    return "You can only vote once per hour.";
+  }
+  if (vote && vote.timestamp) {
+    const previousVote = vote.value;
+    if (previousVote !== vote) {
+      vote.value = value;
+      vote.timestamp = now.getTime();
+      await vote.save();
+    }
+  } else {
+    const newVote = new Vote({
+      userTo: destinationUser._id,
+      userFrom: sourceUser._id,
+      value,
+    });
+    await newVote.save();
+  }
+};
+
+const deleteAllVotes = async () => {
+  await Vote.deleteMany();
+};
+
+const calculateRatings = async (users) => {
+  if (users) {
+    for (const user of users) {
+      const updatedVotes = await Vote.find({ userTo: user._id });
+      const newRating = updatedVotes.reduce(
+        (total, vote) => total + parseInt(vote.value),
+        0,
+      );
+
+      user.rating = newRating;
+      await user.save();
+    }
+  } else logger.error("unable to get users");
+};
+
 module.exports = {
   getAllUsers,
   addUser,
@@ -66,4 +141,7 @@ module.exports = {
   updateUser,
   deleteAllUsers,
   deleteUserByName,
+  addVote,
+  deleteAllVotes,
+  calculateRatings,
 };
