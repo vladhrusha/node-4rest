@@ -82,13 +82,20 @@ const addVote = async ({
   });
 
   const now = new Date();
-  const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
-  const hasVotedRecently =
-    vote && vote.timestamp && vote.timestamp > oneHourAgo;
+  const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+
+  const recentVoteByUserFrom = await Vote.findOne({
+    userFrom: sourceUser._id,
+    timestamp: { $lt: oneHourAgo },
+  });
+  const voteByUserFrom = await Vote.findOne({
+    userFrom: sourceUser._id,
+  });
+
   if (sourceNickname === destNickname) {
     return "You cannot vote for yourself.";
   }
-  if (hasVotedRecently) {
+  if (!recentVoteByUserFrom && voteByUserFrom) {
     return "You can only vote once per hour.";
   }
   if (vote && vote.timestamp) {

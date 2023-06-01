@@ -17,13 +17,10 @@ const {
 const {
   postVoteErrorResponse,
   updateUserErrorResponse,
-  addUserErrorResponse,
-  deleteUserByNameErrorResponse,
-  deleteUsersErrorResponse,
-  getUserByNicknameErrorResponse,
-  getAllUsersErrorResponse,
-  postLoginErrorResponse,
 } = require("./utils/responses");
+const {
+  errorResponse500,
+} = require("./utils/responses/genericStatusResponses");
 // jwt
 const {
   generateAccessToken,
@@ -63,7 +60,7 @@ app.post(`/${appName}/${appVersion}/user`, addUserValidation, (req, res) => {
     handleAddUser(req.body);
     res.status(201).json({ message: "user added" });
   } catch (err) {
-    addUserErrorResponse({ err, res });
+    errorResponse500({ err, res });
   }
 });
 // update user
@@ -97,7 +94,7 @@ app.get(
       const users = await handleGetUsers(req.body);
       res.status(200).json({ message: users });
     } catch (err) {
-      getAllUsersErrorResponse({ err, res });
+      errorResponse500({ err, res });
     }
   },
 );
@@ -116,7 +113,7 @@ app.get(
       res.set("Last-Modified", user.updated_at);
       res.status(200).json({ message: user });
     } catch (err) {
-      getUserByNicknameErrorResponse({ err, res });
+      errorResponse500({ err, res });
     }
   },
 );
@@ -129,7 +126,7 @@ app.delete(
       await handleDeleteUsers();
       res.status(204).send();
     } catch (err) {
-      deleteUsersErrorResponse({ err, res });
+      errorResponse500({ err, res });
     }
   },
 );
@@ -143,7 +140,7 @@ app.delete(
       await handleDeleteUser(req);
       res.status(204).send();
     } catch (err) {
-      deleteUserByNameErrorResponse({ err, res });
+      errorResponse500({ err, res });
     }
   },
 );
@@ -159,7 +156,7 @@ app.post(
       const token = generateAccessToken({ user, userId });
       res.status(200).json({ token });
     } catch (err) {
-      postLoginErrorResponse({ err, res });
+      errorResponse500({ err, res });
     }
   },
 );
@@ -177,8 +174,7 @@ app.post(
       const result = await handleVote(req, res);
       postVoteErrorResponse({ result, res });
     } catch (err) {
-      logger.error(err);
-      res.status(500).json({ error: err });
+      errorResponse500({ err, res });
     }
   },
 );
