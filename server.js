@@ -1,5 +1,8 @@
 const express = require("express");
 const logger = require("./utils/logger");
+// const https = require("https");
+const awsUpload = require("./upload");
+// const awsDownload = require("./download");
 
 // request handlers
 const {
@@ -178,6 +181,30 @@ app.post(
     }
   },
 );
+
+app.post(`/${appName}/${appVersion}/uploadAvatar`, async (req, res) => {
+  try {
+    const REGION = "eu-north-1";
+    const BUCKET = "5.4useravatars";
+    const KEY = "undefined-avatar.jpg";
+    const noClientUrl = await awsUpload.createPresignedUrlWithoutClient({
+      region: REGION,
+      bucket: BUCKET,
+      key: KEY,
+    });
+    const clientUrl = await awsUpload.createPresignedUrlWithoutClient({
+      region: REGION,
+      bucket: BUCKET,
+      key: KEY,
+    });
+    // await awsUpload.main();
+    res
+      .status(200)
+      .json({ presignedURL: noClientUrl, presignedURLTwo: clientUrl });
+  } catch (err) {
+    errorResponse500({ err, res });
+  }
+});
 
 app.listen(port, () => {
   addCalculateRatingsCronJob();
